@@ -8,7 +8,6 @@ var express = require("express");
 var http = require("http");
 var app = express();
 var requestify = require('requestify');
-var HTTPError = require('node-http-error');
 var util = require('util');
 var bodyParser = require('body-parser');
 app.use(bodyParser.json()); // support json encoded bodies
@@ -111,7 +110,7 @@ app.get('/surveymonkey/surveys/results/bulk', function (req, res, next) {
 app.get('/surveymonkey/surveys/questions', function (req, res, next) {
 
         // get surveys from db
-        var surveys = [];
+        res.surveys = [];
         getSurveysNeedingQuestionPages(function (err, surveys) {
             if (err) {
                 console.error(err);

@@ -1,0 +1,33 @@
+{
+  "name": "survey-sister-api",
+  "version": "1.0.0",
+  "description": "An API that merges SurveyMonkey surveys into one DB and makes them searchable",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maynard/survey-sister-api.git"
+  },
+  "keywords": [
+    "surveymonke",
+    "merge",
+    "surveys",
+    "database",
+    "merge",
+    "database"
+  ],
+  "author": "Maynard Black",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/maynard/survey-sister-api/issues"
+  },
+  "homepage": "https://github.com/maynard/survey-sister-api#readme",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "pg": "^6.0.3",
+    "requestify": "^0.1.17"
+  }
+}

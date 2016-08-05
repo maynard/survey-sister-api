@@ -15,7 +15,7 @@ module.exports = function () {
 
     // delay-er
     this.delayer = function (callback) {
-        var waitTill = new Date().getTime() + 600;
+        var waitTill = new Date().getTime() + 1000;
         while (waitTill > new Date()) {
         }
         callback(null);
@@ -44,6 +44,9 @@ module.exports = function () {
                     callback(null, body);
                 })
                 .catch(function (err) {
+                    console.error('ERROR IN smGet WITH URL: ' + url);
+                    console.error('             AND PARAMS: ' + JSON.stringify(params));
+                    console.error(err);
                     callback(err);
                 });
         }); // end delayer
@@ -359,6 +362,8 @@ module.exports = function () {
         var i = 0;
         var surveyLoop = function (i) {
 
+            console.log('+++++++ ' + JSON.stringify(surveys[i]));
+
             pages = surveys[i].question_pages.total; // again, still only supporting 100 pages
             console.log('        current survey: ' + surveys[i].id + ' pages: ' + pages);
 
@@ -432,6 +437,12 @@ module.exports = function () {
     ////////// Support Functions ///////////////////////////////////////////////////////////////////////////////////////
 
     this.loopPages = function (survey, question_pages, callback) {
+
+        if (!question_pages) {
+            console.log('** IN loopPages - question_pages is **' + (typeof question_pages));
+            callback(new Error('question_pages null or undefined'))
+        }
+
         var page = 0;
         questionPageLoop = function (page) {
             var current_page = question_pages[page];
@@ -462,7 +473,7 @@ module.exports = function () {
                             questionPageLoop(page);
                         }
                         else { // done looping pages
-                            callback(null, surveys);
+                            callback(null, survey);
                         }
                         ///////////////////////////////
                     }
@@ -472,7 +483,11 @@ module.exports = function () {
         questionPageLoop(page);
     };
 
-    this.loopQuestions = function (survey, current_page) {
+    this.loopQuestions = function (survey, current_page, callback) {
+        if (!current_page) {
+            console.log('** IN loopQuestions - current_page is **' + (typeof current_page));
+            callback(new Error('current_page null or undefined'))
+        }
 
         console.log('TOTAL: ' + current_page.questions_envelope.total);
 
@@ -481,48 +496,61 @@ module.exports = function () {
         }
         var all_answers = [];
 
-        console.log('CURRENT PAGE **********: ' + JSON.stringify(current_page));
+        console.log('CURRENT PAGE: ' + JSON.stringify(current_page));
 
         //Loop questions on this page to get 'answers' for them
         var questions = current_page.questions_envelope.data;
         var question_number = 0;
-        loopQuestions = function (question_number) {
+        var loopQuestionsGetAnswers = function (question_number) {
             var current_question = questions[question_number];
 
-            //console.log('current_question: ' + JSON.stringify(current_question));
+            console.log('current_question: ' + JSON.stringify(current_question));
+            if (!current_question) {
+                console.log('*/*/ !current_question in loop: ' + question_number);
+                console.log('*/*/ !current_question in loop: ' + JSON.stringify(question_number));
+                console.log('*/*/ !current_question in loop: ' + (typeof question_number));
+                ////////////////////////////////////
+                // iterate
+                question_number++;
+                if (question_number < questions.length) {
+                    loopQuestionsGetAnswers(question_number);
+                }
+                else {
+                    callback(null, survey);
+                }
+                ////////////////////////////////////
+            }
 
             // get answers from api
             var url = 'https://api.surveymonkey.net/v3/surveys/' + survey.id + '/pages/' + current_page.id + '/questions/' + current_question.id;
-
             console.log('URL: ' + url);
-
-            var params = {'per_page': 100}; // only supporting up to 100 pages at this time
-            smGet(url, params, function (err, data) {
+            //var params = {'per_page': 100}; // only supporting up to 100 pages at this time
+            smGet(url, [], function (err, data) {
                 if (err) {
+                    console.error('ERROR GETTING ANSWERS');
+                    console.error('FROM URL: ' + url);
                     callback(err);
                 }
                 else {
                     // put answers with question
-                    //surveys[i].question_pages.data[page].questions.data[question_number].answers = data;
-                    current_question.answers.booger = {'booger': 'snot'};
                     current_question.answers = data;
-                    console.log('current_question after: ' + JSON.stringify(current_question));
+                    console.log('====== ANSWER RETURNED ====== ' + JSON.stringify(data));
 
                     ////////////////////////////////////
                     // iterate
                     question_number++;
                     if (question_number < questions.length) {
-                        loopQuestions(question_number);
+                        loopQuestionsGetAnswers(question_number);
                     }
                     else {
-                        return survey;
+                        callback(null, survey);
                     }
                     ////////////////////////////////////
 
                 } // end if sm results
             }); // end get answers for question
         };
-        loopQuestions(question_number);
+        loopQuestionsGetAnswers(question_number);
     };
 
     ////////// End Support Functions ///////////////////////////////////////////////////////////////////////////////////
