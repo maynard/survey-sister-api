@@ -377,7 +377,7 @@ module.exports = function () {
                     else {
                         // add the whole question object to the page
                         surveys[i].question_pages.data[page].questions_envelope = data;
-
+    
                         ////////////////////////////////////
                         // iterate
                         page++;
@@ -439,7 +439,6 @@ module.exports = function () {
 
             // There may be pages with no questions, in which case we need to skip the page
             if (questions_envelope.total == 0) {
-                console.log('**************************************************************');
                 /// iterator //////////////////
                 page++;
                 if (page < question_pages.length) {
@@ -451,8 +450,6 @@ module.exports = function () {
                 ///////////////////////////////
             }
             else {
-                console.log('CURRENT PAGE @@@@@@@@@@@@: ' + JSON.stringify(current_page));
-
                 // we have a page with questions
                 loopQuestions(survey, current_page, function (err, survey) {
                     if (err) {
@@ -470,26 +467,35 @@ module.exports = function () {
                         ///////////////////////////////
                     }
                 });
-
             }
         };
         questionPageLoop(page);
     };
 
     this.loopQuestions = function (survey, current_page) {
+
+        console.log('TOTAL: ' + current_page.questions_envelope.total);
+
+        if (current_page.questions_envelope.total == 0) {
+            console.log('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
+        }
         var all_answers = [];
 
         console.log('CURRENT PAGE **********: ' + JSON.stringify(current_page));
 
         //Loop questions on this page to get 'answers' for them
-        var questions = current_page.data;
+        var questions = current_page.questions_envelope.data;
         var question_number = 0;
         loopQuestions = function (question_number) {
             var current_question = questions[question_number];
 
+            //console.log('current_question: ' + JSON.stringify(current_question));
+
             // get answers from api
             var url = 'https://api.surveymonkey.net/v3/surveys/' + survey.id + '/pages/' + current_page.id + '/questions/' + current_question.id;
-            console.error(url);
+
+            console.log('URL: ' + url);
+
             var params = {'per_page': 100}; // only supporting up to 100 pages at this time
             smGet(url, params, function (err, data) {
                 if (err) {
@@ -498,7 +504,9 @@ module.exports = function () {
                 else {
                     // put answers with question
                     //surveys[i].question_pages.data[page].questions.data[question_number].answers = data;
+                    current_question.answers.booger = {'booger': 'snot'};
                     current_question.answers = data;
+                    console.log('current_question after: ' + JSON.stringify(current_question));
 
                     ////////////////////////////////////
                     // iterate
@@ -515,7 +523,6 @@ module.exports = function () {
             }); // end get answers for question
         };
         loopQuestions(question_number);
-
     };
 
     ////////// End Support Functions ///////////////////////////////////////////////////////////////////////////////////

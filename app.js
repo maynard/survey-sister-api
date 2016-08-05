@@ -1,7 +1,7 @@
 /**
  * Created by Maynard Black
  */
- 
+
 require('./tools.js')();
 require('./database.js')();
 var express = require("express");
@@ -167,8 +167,7 @@ app.get('/surveymonkey/surveys/questions', function (req, res, next) {
             }
         });
     },
-
-
+    
     function (req, res) {
         console.log('Done.');
         writeResponse(res, 200, res.surveys);
